@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
@@ -107,6 +107,25 @@ uab.BlockInfoAndDirectory.Data.DirectoryInfo.ForEach(directoryInfo =>
                   return acc;
               });
               File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(entries, Formatting.Indented));
+
+              return;
+          }
+          if (name == "Adventure_language")
+          {
+              var lines = text.Split("\n");
+              var validlines = lines.Where(x => x.Contains("LK_") && x.Contains("="));
+              var dict = new Dictionary<string, string>();
+              foreach(var l in validlines)
+              {
+                  dict.Add(l.Split("=")[0], l.Split("=")[1]);
+              }
+              /*var entries = languageKeyToLineMapping.Aggregate(new Dictionary<string, string>(), (acc, pair) =>
+              {
+                  acc[pair.Key] = lines[pair.Value];
+
+                  return acc;
+              });*/
+              File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(dict, Formatting.Indented));
 
               return;
           }
