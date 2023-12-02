@@ -15,4 +15,10 @@
     <PackageReference Include="YamlDotNet" Version="12.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="AssetsTools.NET">
+      <HintPath>AssetsTools.NET.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

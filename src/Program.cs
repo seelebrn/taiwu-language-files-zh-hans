@@ -1,13 +1,16 @@
-using System.Text.RegularExpressions;
-
+﻿using System.Text.RegularExpressions;
+using AssetsTools.NET;
+using AssetsTools.NET.Extra;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using ICSharpCode.Decompiler.Metadata;
+using ICSharpCode.Decompiler.Semantics;
 using ICSharpCode.Decompiler.TypeSystem;
 using Kaitai;
 using Newtonsoft.Json;
 using YamlDotNet.Serialization;
+using static Kaitai.UnityBundle.BlockInfoAndDirectoryT;
 
 const string OUTPUT_DIR = "zh-hans";
 
@@ -66,98 +69,11 @@ var languageKeyToLineMapping = arrayInitializer.Children.Aggregate(new Dictionar
 
   return acc;
 });
-
-var languageCnAssetBundle = Path.Join(gameDirectory, "The Scroll of Taiwu_Data", "GameResources", "language_cn.uab");
-if (!File.Exists(languageCnAssetBundle))
-{
-  Console.Error.WriteLine($"Invalid language_cn.uab: {languageCnAssetBundle}!");
-  Environment.Exit(1);
-}
-
-var uab = UnityBundle.FromFile(languageCnAssetBundle);
-var uabData = uab.Blocks.Aggregate(new byte[0], (acc, block) =>
-{
-  return acc.Concat(block.Data).ToArray();
-});
-
-if (!Directory.Exists(OUTPUT_DIR)) Directory.CreateDirectory(OUTPUT_DIR);
-uab.BlockInfoAndDirectory.Data.DirectoryInfo.ForEach(directoryInfo =>
-{
-  var assetData = new byte[directoryInfo.Size];
-  Array.Copy(uabData, directoryInfo.Offset, assetData, 0, directoryInfo.Size);
-
-  var asset = new Assets(new KaitaiStream(assetData));
-  asset.Metadata.Objects.Data.ForEach((obj) =>
-  {
-      try
-      {
-          var data = (Assets.UnityTextAsset3acc9e530e323df61040bf9358a9076c)obj.Data;
-
-          var name = data.MName.Data;
-          var text = data.MScript.Data;
-
-          Console.WriteLine($"[+] saving {name}...");
-          if (name == "ui_language")
-          {
-              var lines = text.Split("\n");
-              var entries = languageKeyToLineMapping.Aggregate(new Dictionary<string, string>(), (acc, pair) =>
-              {
-                  acc[pair.Key] = lines[pair.Value];
-
-                  return acc;
-              });
-              File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(entries, Formatting.Indented));
-
-              return;
-          }
-          if (name == "Adventure_language")
-          {
-              var lines = text.Split("\n");
-              var jsonlines = lines.Where(x => x.Contains("LK_") && x.Contains("="));
-              var dict = new Dictionary<string, string>();
-              foreach(var l in jsonlines)
-              {
-                  dict.Add(l.Split("=")[0], l.Split("=")[1]);
-              }
-              /*var entries = languageKeyToLineMapping.Aggregate(new Dictionary<string, string>(), (acc, pair) =>
-              {
-                  acc[pair.Key] = lines[pair.Value];
-
-                  return acc;
-              });*/
-              File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(dict, Formatting.Indented));
-             
-              var sb = new System.Text.StringBuilder();
-              for (int i = 0; i < lines.Count(); i++)
-              {
-                  if (!jsonlines.Contains(lines[i]))
-                  { 
-                  sb.Append(lines[i].ToString() + "\n");
-                  }
-              }
-
-              File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.txt"), sb.ToString());
-              return;
-          }
-
-          File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.txt"), text);
-      }
-      catch (Exception ex)
-      {
-          var data = (Assets.UnityAssetBundle2499c1ef1964cfe407884c9053915b78)obj.Data;
-          
-          Console.WriteLine(data.MName.Data);
-          Console.WriteLine(ex.ToString());
-      }
-
-  });
-});
-
 var eventsDirectory = Path.Join(gameDirectory, "Event", "EventLanguages");
 if (!Directory.Exists(eventsDirectory))
 {
-  Console.Error.WriteLine($"Invalid events directory: {eventsDirectory}!");
-  Environment.Exit(1);
+    Console.Error.WriteLine($"Invalid events directory: {eventsDirectory}!");
+    Environment.Exit(1);
 }
 
 Console.WriteLine("[+] saving EventLanguages...");
@@ -173,3 +89,92 @@ Dictionary<string, string> flatDict = parsedTemplates.Values
     .SelectMany(template => template.FlattenTemplateToDict())
     .ToDictionary(pair => pair.Key, pair => pair.Value);
 File.WriteAllText(Path.Join(OUTPUT_DIR, "events.json"), JsonConvert.SerializeObject(flatDict, Formatting.Indented));
+
+var languageCnAssetBundle = Path.Join(gameDirectory, "The Scroll of Taiwu_Data", "GameResources", "language_cn.uab");
+if (!File.Exists(languageCnAssetBundle))
+{
+  Console.Error.WriteLine($"Invalid language_cn.uab: {languageCnAssetBundle}!");
+  Environment.Exit(1);
+}
+
+
+
+    var manager = new AssetsManager();
+
+    var bunInst = manager.LoadBundleFile(languageCnAssetBundle, true);
+
+
+
+        var afileInst = manager.LoadAssetsFileFromBundle(bunInst, 0, true);
+
+        var afile = afileInst.file;
+        foreach (var texInfo in afile.GetAssetsOfType(AssetClassID.TextAsset))
+        {
+
+            if (!Directory.Exists(OUTPUT_DIR))
+            {
+                Directory.CreateDirectory(OUTPUT_DIR);
+            }
+
+            var texBase = manager.GetBaseField(afileInst, texInfo);
+            var name = texBase["m_Name"].AsString;
+            var text = texBase["m_Script"].AsString;
+            Console.WriteLine($"[+] saving {name}...");
+
+    
+
+    if (name == "ui_language")
+    {
+        var lines = text.Split("\n");
+        var entries = languageKeyToLineMapping.Aggregate(new Dictionary<string, string>(), (acc, pair) =>
+        {
+            acc[pair.Key] = lines[pair.Value];
+
+            return acc;
+        });
+        File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(entries, Formatting.Indented));
+
+    }
+    
+    if (name == "Adventure_language")
+    {
+        var lines = text.Split("\n");
+        var jsonlines = lines.Where(x => x.Contains("LK_") && x.Contains("="));
+        var dict = new Dictionary<string, string>();
+        foreach (var l in jsonlines)
+        {
+            if (l.Contains("="))
+            {
+                dict.Add(l.Split("=")[0], l.Split("=")[1]);
+            }
+        }
+
+        File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(dict, Formatting.Indented));
+
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < lines.Count(); i++)
+        {
+            if (!jsonlines.Contains(lines[i]) && lines[i] != null)
+            {
+                sb.Append(lines[i].ToString() + "\n");
+            }
+        }
+
+        File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.txt"), sb.ToString());
+
+
+    }
+    if(name != "Adventure_language" && name != "ui_language")
+    { 
+    File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.txt"), text);
+    }
+}
+
+
+
+
+
+
+
+
+

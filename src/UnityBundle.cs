@@ -8,6 +8,7 @@ namespace Kaitai
     {
         public static UnityBundle FromFile(string fileName)
         {
+            Console.WriteLine("Current file ... : " + fileName);
             return new UnityBundle(new KaitaiStream(fileName));
         }
 
@@ -25,22 +26,43 @@ namespace Kaitai
             m_parent = p__parent;
             m_root = p__root ?? this;
             _read();
+
         }
         private void _read()
         {
+            Console.WriteLine("Processing file... :");
+            Console.WriteLine("Now looking for _signature...");
             _signature = System.Text.Encoding.GetEncoding("utf-8").GetString(m_io.ReadBytesTerm(0, false, true, true));
+            Console.WriteLine("_signature : " + _signature.ToString());
+            Console.WriteLine("Now looking for _version...");
+
             _version = m_io.ReadU4be();
+
+            Console.WriteLine("_version : " + _version.ToString());
+            Console.WriteLine("Now looking for _UnityVersion...");
+
             _unityVersion = System.Text.Encoding.GetEncoding("utf-8").GetString(m_io.ReadBytesTerm(0, false, true, true));
+            Console.WriteLine("_UnityVersion : " + _unityVersion.ToString());
+
+            Console.WriteLine("Now looking for _UnityRevision...");
+
             _unityReversion = System.Text.Encoding.GetEncoding("utf-8").GetString(m_io.ReadBytesTerm(0, false, true, true));
+            Console.WriteLine("_UnityRevision : " + _unityReversion.ToString());
+
             if (Signature == "UnityFS") {
                 _header = new HeaderT(m_io, this, m_root);
+                Console.WriteLine("Header Size : " + _header.Size.ToString());
+                Console.WriteLine("Is Header Valid ? : " + _header.IsValid);
+
             }
             if ( ((Header.IsValid) && (Version == 6)) ) {
                 _blockInfoAndDirectory = new BlockInfoAndDirectoryT(m_io, this, m_root);
+                Console.WriteLine("Header is valid !");
             }
             _blocks = new List<Block>();
             for (var i = 0; i < BlockInfoAndDirectory.Data.BlocksInfoCount; i++)
             {
+                Console.WriteLine("BlockInfoAndDirectoryData Count : " + BlockInfoAndDirectory.Data.BlocksInfoCount);
                 _blocks.Add(new Block(BlockInfoAndDirectory.Data.BlocksInfo[i].UncompressedSize, BlockInfoAndDirectory.Data.BlocksInfo[i].CompressedSize, m_io, this, m_root));
             }
             _rest = m_io.ReadBytesFull();
@@ -50,6 +72,7 @@ namespace Kaitai
             public static HeaderT FromFile(string fileName)
             {
                 return new HeaderT(new KaitaiStream(fileName));
+
             }
 
             public HeaderT(KaitaiStream p__io, UnityBundle p__parent = null, UnityBundle p__root = null) : base(p__io)
