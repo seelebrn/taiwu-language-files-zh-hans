@@ -12,7 +12,8 @@
           "K4os.Compression.LZ4": "1.2.16",
           "KaitaiStruct.Runtime.CSharp": "0.10.0",
           "Newtonsoft.Json": "13.0.1",
-          "YamlDotNet": "12.0.1"
+          "YamlDotNet": "12.0.1",
+          "AssetsTools.NET": "3.0.0.0"
         },
         "runtime": {
           "taiwu-language-files-zh-hans.dll": {}
@@ -746,6 +747,14 @@
             "fileVersion": "12.0.1.0"
           }
         }
+      },
+      "AssetsTools.NET/3.0.0.0": {
+        "runtime": {
+          "AssetsTools.NET.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
       }
     }
   },
@@ -1335,6 +1344,11 @@
       "sha512": "sha512-MltVIOIX817Uz/TFkPSaZImdzB86X/k8QY0kFBQx6KI6GsKOk3rIlrptOhb28O0RD2WnibMoYLnCQnqfYduvaw==",
       "path": "yamldotnet/12.0.1",
       "hashPath": "yamldotnet.12.0.1.nupkg.sha512"
+    },
+    "AssetsTools.NET/3.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }
