@@ -138,6 +138,8 @@ if (!File.Exists(languageCnAssetBundle))
     
     if (name == "Adventure_language")
     {
+        int v = 0;
+        //We're trying to avoid empty lines, so we'll count lines until the ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" separator [before : txt, after, json] and setting it as v. Then, we iterate through the txt with v as an upper limit.
         var lines = text.Split("\n");
         var jsonlines = lines.Where(x => x.Contains("LK_") && x.Contains("="));
         var dict = new Dictionary<string, string>();
@@ -150,13 +152,23 @@ if (!File.Exists(languageCnAssetBundle))
         }
 
         File.WriteAllText(Path.Join(OUTPUT_DIR, $"{name}.json"), JsonConvert.SerializeObject(dict, Formatting.Indented));
-
+        v = lines.Count();
         var sb = new System.Text.StringBuilder();
-        for (int i = 0; i < lines.Count(); i++)
+        for (int i = 0; i < v; i++)
         {
-            if (!jsonlines.Contains(lines[i]) && lines[i] != null)
+            if (lines[i] == ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             {
-                sb.Append(lines[i].ToString() + "\n");
+                Console.WriteLine("line n°" + i + ": " + lines[i]);
+                sb.Append(lines[i].ToString());
+                v = i;
+                break;
+            }
+
+            if (!jsonlines.Contains(lines[i]))
+            {
+
+                    sb.Append(lines[i].ToString() + "\n");
+                Console.WriteLine("line n°" + i + ": " + lines[i]);
             }
         }
 
